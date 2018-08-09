@@ -1,4 +1,4 @@
-## Willis .zshrc 18.01
+## Willis .zshrc 18.08
 ######################
 
 # {{{1 Options
@@ -9,43 +9,56 @@ compinit
 colors
 
 export XCOMPOSE=~/.Xcompose
-
 export HISTFILE=~/.zshhist
 export HISTSIZE=8192
 export SAVEHIST=8192
 export EDITOR=vim
 
-setopt brace_ccl			# expand alphabetic brace exrpressions
-setopt complete_aliases
+# Completion
 setopt complete_in_word     # ~/Dev/pro -> <Tab> -> ~/Development/project
-setopt numeric_glob_sort    # when globbing numbered files, use real counting
-#setopt hist_ignore_all_dups # when I run a command several times, only store one
-setopt hist_ignore_dups		# when I run a command several times, only store one
-setopt hist_no_functions    # don't show function definitions in history
-setopt hist_reduce_blanks   # reduce whitespace in history
-setopt append_history
-setopt inc_append_history
-setopt HIST_FIND_NO_DUPS
-setopt INTERACTIVE_COMMENTS # Allow comments even in interactive shells
-setopt correct				# spell check for commands only
+setopt complete_aliases
+
+# Directories
+setopt auto_cd              # Automatically cd to paths
+setopt autopushd            # Automatically append dirs to the push/pop list
+setopt pushdignoredups      # ... and don't duplicate them
+
+# Expansion and globbing
 #setopt glob_complete
-setopt extended_glob
-setopt autopushd            # automatically append dirs to the push/pop list
-setopt pushdignoredups      # and don't duplicate them
-setopt prompt_subst
-setopt auto_cd              # automatically cd to paths
+setopt brace_ccl			# Expand alphabetic brace exrpressions
+setopt bad_pattern			# If a pattern is badly formatted, print it
+setopt extended_glob		# Treat #, ~ and ^ chars as part of a pattern
+
+# History
+#setopt hist_ignore_all_dups # when I run a command several times, only store one
+setopt hist_ignore_dups		# When I run a command several times, only store one
+setopt hist_no_functions    # Don't show function definitions in history
+setopt hist_reduce_blanks   # Reduce whitespace in history
+setopt hist_ignore_space	# Dont add commands with a leading space to history
+setopt hist_find_no_dups
+# setopt extended_history	# Save commands beginning and duration time
+setopt inc_append_history	# When multiple session are active, append to histfile
+setopt share_history
+
+# Misc
+setopt correct				# Spellcheck for commands only
+setopt numeric_glob_sort    # When globbing numbered files, use real counting
+setopt interactive_comments # Allow comments even in interactive shells
+setopt prompt_subst			# Parameter expansions and command subst on prompt string
+setopt check_jobs			# Check suspended jobs before exit
+setopt check_running_jobs	# ... aswell as running jobs
+
 
 ## {{{1 Prompt
 
-#PROMPT="%B%n[%24<*<%~]%#%b "
 PROMPT="
-%B%n %bon%B %m %bis%B %(?.%F{green}:)%f.%F{red}:(%f) %bwhile being at%B %32<*<%~
-%#%b "
-
-PROMPT="
-%B%n %bon%B %m %bis%B %(?.%F{green}:)%f.%F{red}:(%f) %bat%B %32<*<%~
+%B%n %bon%B %m %bis%B %(?.%F{green}:)%f.%F{red}:(%f) %bat%B %32<*<%~ %v
 %#%b "
 #RPROMPT="%~ (%*)" #show date on right prompt
+
+function precmd() {
+    PSVAR=`git_prompt_precmd`
+}
 
 
 ## {{{1 Keys
@@ -80,11 +93,28 @@ key[PageDown]=${terminfo[knp]}
 [[ -n "${key[Left]}"    ]]  && bindkey  "${key[Left]}"    backward-char
 [[ -n "${key[Right]}"   ]]  && bindkey  "${key[Right]}"   forward-char
 
-## {{{1 Style 
+# Move one directory up
+function cdParentKey {
+	pushd ..
+	zle reset-prompt
+	echo
+	ls
+	zle reset-prompt
+}
 
-zle -N history-beginning-search-backward-end
-zle -N history-beginning-search-forward-end history-search-end
-zle -N self-insert url-quote-magic
+# Undo cd
+function cdUndoKey {
+	popd
+	zle reset-prompt
+	echo
+	ls
+	zle reset-prompt
+}
+
+zle -N cdParentKey	&& bindkey "^[[1;3A" cdParentKey	# Alt+Up 
+zle -N cdUndoKey	&& bindkey "^[[1;3D" cdUndoKey		# Alt+Left
+
+## {{{1 Style 
 
 # formatting and messages
 zstyle ':completion:*' verbose 'yes'
@@ -107,80 +137,7 @@ zstyle ':completion:*:processes' command 'ps -A'
 zstyle ':completion:*:manuals' menu yes select
 zstyle ':completion:*history*' remove-all-dups yes
 zstyle ':completion:*:(cd|mv|cp):*' ignore-parents parent pwd
-typeset -xUT LS_COLORS ls_colors
-
-# more ls colors
-ls_colors=(
-    #1 = red 2=green 3=yellow 4=blue 5=pink 6=cyan 7=white 8=black
-    "no=00"
-    "fi=00"
-    "di=01;38"
-    "ln=01;35"
-    "*#=4"
-    "*%=4"
-    "*~=4"
-
-    "*.cmd=01;32"
-    "*.exe=01;32"
-    "*.sh=01;32" 
-    "*.zsh=01;32"
-
-    "*.tar=00;31"
-    "*.tgz=00;31"
-    "*.rar=00;31"
-    "*.taz=00;31"
-    "*.lzh=00;31"
-    "*.zip=00;31"
-    "*.gz=00;31"
-    "*.bz2=00;31"
-    "*.cpio=00;31"
-    "*.rpm=01;31"
-    "*.deb=01;31"
-
-    "*.jpg=00;34"
-    "*.gif=00;34"
-    "*.bmp=00;24"
-    "*.xbm=00;34"
-    "*.xpm=00;34"
-    "*.png=00;34"
-    "*.tif=00;34"
-
-    "*.c=31"
-    "*.cc=31"
-    "*.cpp=31"
-    "*.C=31"
-    "*.cxx=31"
-    "*.o=34"
-    "*.h=33"
-    "*.java=31"
-    "*.class=35"
-    "*.html=31"
-    "*.htm=31"
-    "*.shtml=31"
-    "*.tex=31"
-    "*.lyx=31"
-    "*.mgp=31"
-    "*.pl=31"
-    "*.py=31"
-
-    "*akefile=31;43"
-    "*akefile.linux=31;43"
-    "*akefile.in=31;43"
-    "*akefile.am=31;43"
-    "*onfigure.in=31;43"
-
-    "*.ogg=33;4"
-    "*.flac=33;4"
-    "*.mp3=33;4"
-    "*.wav=33;4"
-    "*.mpg=35;4"
-    "*.mpeg=35;4"
-    "*.avi=35;4"
-    "*.ram=35;4"
-    "*.wmv=35;4"
-    "*.vob=35;4"
-    "*.mkv=35;4"
-)
+zstyle ':completion:*' rehash true
 
 # Colored less
 export LESS_TERMCAP_mb=$'\E[01;31m'
@@ -196,23 +153,24 @@ export LESS_TERMCAP_us=$'\E[01;32m'
 
 alias -g ...="../.."
 alias -g ....="../../.."
+alias checknet="ip addr; ping google.de"
 alias df="df -h"
 alias la="ls -ACF --group-directories-first"
 alias ll="ls -l -h --color=auto -F --group-directories-first"
 alias ls="ls --color=auto -F --group-directories-first"
 alias lsd="ls -d */"
 alias grep="grep --color=auto"
-alias inet="ip addr; ping google.de"
 alias -g ND='$(ls --color=none -d *(/om[1]))' # newest directory
-alias -g NF='$(ls --color=none *(.om[1]))'    #newest file
-alias own="sudo chown `whoami`"
-alias pwd=/bin/pwd	# inbuild pwd does not show realpath (symlink problem)
-alias pud='pwd | xsel -s'
-alias pod='cd "$( xsel -so )"'
+alias -g NF='$(ls --color=none *(.om[1]))'    # newest file
+alias maps="telnet mapscii.me"
+alias own="sudo chown $(whoami)"
+alias pwd="/bin/pwd"	# inbuild pwd does not show realpath (symlink problem)
+alias pud="pwd | xsel -s"
+alias pod="cd '$(xsel -so)'"
 alias readbios="sudo dd if=/dev/mem bs=1k skip=768 count=512 2>/dev/null | strings -n 8"
-alias search="find | grep"
 alias showip="curl icanhazip.com"
 alias srm="mv -t ~/.local/share/Trash/files --backup=t --verbose"
+alias tron="ssh sshtron.zachlatta.com"
 alias weather="curl -s wttr.in/bonn+germany | head -n 7" # 2> /dev/null"
 
 ## Command File Type Detection
@@ -228,57 +186,11 @@ alias -s {mp3,ogg,wav,flac}="mplayer"
 
 ## {{{1 Functions
 
-
-function update()
-{
-	if [ -f /usr/bin/apt-get ];	then
-		sudo apt-get update
-		sudo apt-get dist-upgrade -y
-	else # archlinux
-	    pacaur --noconfirm -Syu
-	fi
-}
-
-function save()
-{
-	NAME=`basename $(pwd)`-`date "+%Y-%m-%d"`.7z
-	7z a $NAME . -p
-	mv $NAME ~/Dropbox/save
-}
-
-function cleanthumbnails()
-{
-	echo "Thumbnail cache size before cleaning..."
-	du -h ~/.cache/thumbnails
-	find ~/.cache/thumbnails -type f -atime +90 -exec rm '{}' \;
-	echo "Thumbnail cache size after cleaning..."
-	du -h ~/.cache/thumbnails
-}
-
-function showtopcmds()
-{
-    if [ "$1" = "" ] ; then
-		1="10"
-    fi
-    print -l ${(o)history%% *} | uniq -c | sort -nr | head -n "$1"
-    echo "* Roots top cmds:"
-
-	grep sudo $HISTFILE | awk '{print $2}'| sort | uniq -c | sort -nr | head -n "$1"
-    echo "* Total cmds: `wc -l $HISTFILE`"
-}
-
-function lowercase-extensions()
-{
-	autoload zmv
-	zmv '(**/)(*).(*)' '$1$2.${(L)3}'
-}
-
-function bcalc() {
-    if [[ ! -f /usr/bin/bc ]] ; then
-        echo 'Please install bc before trying to use it!'
-        return
-    fi
-    
+function bcalc {
+    if [[ ! -f /usr/bin/bc ]]; then
+        echo "Please install bc before trying to use it!"
+        return 1
+    fi    
     if [[ -z "$1" ]] ; then
         /usr/bin/bc -q
     else
@@ -286,29 +198,108 @@ function bcalc() {
     fi
 }
 
-function locategrep 
-{ 
-  if [ "${#}" != 2 ] ; then 
-    echo "Usage: locategrep [string to locate] [string to grep]"; 
-    return 1; 
-  else 
-    echo "locate -i ${1} | grep -i ${2}"; 
-    command locate -i ${1} | grep -i ${2}; 
-  fi; 
+function cdl {
+	cd "$@" && ls
 }
 
-function llgrep()
-{
-    ls -l --color=auto | grep -i ${1:-""} 
+function cleanthumbnails {
+	echo "Thumbnail cache size before cleaning..."
+	du -h ~/.cache/thumbnails
+	find ~/.cache/thumbnails -type f -atime +90 -exec rm '{}' \;
+	echo "Thumbnail cache size after cleaning..."
+	du -h ~/.cache/thumbnails
 }
 
-function mvcd()
-{
+function llgrep {
+    ls -l  | grep -i ${1:-""} 
+}
+
+function locategrep  { 
+	if [ "${#}" != 2 ]; then 
+		echo "Usage: locategrep [string to locate] [string to grep]"
+		return 1
+	else 
+		echo "locate -i ${1} | grep -i ${2}"
+		command locate -i ${1} | grep -i ${2}
+	fi; 
+}
+
+function lowercase-extensions {
+	autoload zmv
+	zmv '(**/)(*).(*)' '$1$2.${(L)3}'
+}
+
+function mvcd {
 	mv -iv "${@}" && cd "${@: -1}"
 }
 
+function save {
+	NAME=`basename $(pwd)`-`date "+%Y-%m-%d"`.7z
+	7z a $NAME . -p
+	mv $NAME ~/Dropbox/save
+}
+
+function showtopcmds {
+    if [ "$1" = "" ] ; then
+		1="10"
+    fi
+    print -l ${(o)history%% *} | uniq -c | sort -nr | head -n "$1"
+    echo "* Roots top cmds:"
+	grep sudo $HISTFILE | awk '{print $2}'| sort | uniq -c | sort -nr | head -n "$1"
+    echo "* Total cmds: `wc -l $HISTFILE`"
+}
+
+function source-zsh-mod {
+	local SYS_PLUGIN_FOLDER=/usr/share/zsh/plugins
+	local USER_PLUGIN_FOLDER=~/.zsh
+	if [ -f $1 ]; then
+		source $1
+	elif [ -f $USER_PLUGIN_FOLDER/$1 ]; then
+		source $USER_PLUGIN_FOLDER/$1
+	elif [ -f $SYS_PLUGIN_FOLDER/$1 ]; then
+		source $SYS_PLUGIN_FOLDER/$1
+	else
+		ZSH_MISSING="$ZSH_MISSING\n$1"
+	fi
+}
+
+
+function update {
+	if [ -f /usr/bin/apt ];	then	# Debian based
+		sudo apt update
+		sudo apt dist-upgrade -y
+	else							# Arch based
+	    if  [  -f /usr/bin/yay ]; then
+			yay --noconfirm -Syu
+		else
+			sudo pacman -Syu
+		fi
+	fi
+}
+
+function xterm_title_precmd {
+	print -Pn '\e]2;  %1~ $(jobs) \a'
+}
+
+function xterm_title_preexec {
+	print -Pn '\e]2;% %1~ %# '
+}
+
+source-zsh-mod zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source-zsh-mod zsh-autosuggestions/zsh-autosuggestions.zsh
+source-zsh-mod /usr/share/doc/pkgfile/command-not-found.zsh
+# https://github.com/joto/zsh-git-prompt/blob/master/git-prompt.zsh
+source-zsh-mod git-prompt.zsh
+
+# Used to display terminal title
+autoload -Uz add-zsh-hook
+add-zsh-hook -Uz precmd xterm_title_precmd
+#add-zsh-hook -Uz preexec xterm_title_preexec
+
+# When opening a new shell, display todo list (if it exists)
 if ! type "fortune" > /dev/null; then
 	[ -f .todo ] && cat .todo || true
 else
 	[ -f .todo ] && cat .todo || fortune -s
 fi
+
