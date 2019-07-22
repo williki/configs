@@ -165,8 +165,8 @@ alias -g NF='$(ls --color=none *(.om[1]))'    # newest file
 alias maps="telnet mapscii.me"
 alias own="sudo chown $(whoami)"
 alias pwd="/bin/pwd"	# inbuild pwd does not show realpath (symlink problem)
-alias pud="pwd | xsel -s"
-alias pod="cd '$(xsel -so)'"
+#alias pud="pwd | xsel -s"
+#alias pod="cd '$(xsel -so)'"
 alias readbios="sudo dd if=/dev/mem bs=1k skip=768 count=512 2>/dev/null | strings -n 8"
 alias showip="curl icanhazip.com"
 alias srm="mv -t ~/.local/share/Trash/files --backup=t --verbose"
